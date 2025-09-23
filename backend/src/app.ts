@@ -2,6 +2,8 @@ import express from 'express';
 import { configDotenv } from 'dotenv';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import passport from 'passport';
+import {Strategy as GoogleStrategy, Profile as GoogleProfile, VerifyCallback} from 'passport-google-oauth20';
 
 configDotenv()
 
@@ -24,12 +26,33 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+app.use(passport.initialize());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// PassportJS
+passport.use(new GoogleStrategy({
+  clientID: process.env.GOOGLE_CLIENT_ID as string,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+  callbackURL: `${process.env.SERVER}/api/v1/auth/google-auth`
+}, (accessToken: string, refreshToken: string, profile: GoogleProfile, done: VerifyCallback) => {
+  interface GoogleOAuthProfile {
+    name: string,
+    email: string,
+    profile_pic: string
+  }
+
+  const user: GoogleOAuthProfile = {
+    name: profile.displayName,
+    email: profile.emails ? profile.emails[0].value : '',
+    profile_pic: profile.photos ? profile.photos[0].value : ''
+  }
+  return done(null, user);
+}))
+
 // Routes
-app.use('/api/auth', authRoutes)
+app.use('/api/v1/auth', authRoutes)
 
 
 app.use(errorHandler)

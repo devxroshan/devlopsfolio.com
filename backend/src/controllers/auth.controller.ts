@@ -10,13 +10,15 @@ import userModel from "../models/user.model";
 // Utils
 import AppError from "../utils/appError";
 import { SendMail } from "../utils/sendMail";
-import { generateJWTToken } from "../utils/generateJWTToken";
+import { generateJWTToken, JWTExpiresIn } from "../utils/generateJWTToken";
 import { AsyncRequestHandler } from "../utils/asyncRequestHandler";
 import { verifyJWTToken } from "../utils/verifyJWTToken";
 
 // Middlewares
 
 const signUp = async (req: express.Request, res: express.Response) => {
+  const { authParty } = req.query;
+
   const isEmailExists = await userModel.exists({ email: req.body.email });
   const isUsernameExists = await userModel.exists({
     username: req.body.username,
@@ -40,28 +42,41 @@ const signUp = async (req: express.Request, res: express.Response) => {
 
   if (!newUser) throw new AppError("Internal Server Error.", 500);
 
-  const verificationToken = generateJWTToken(newUser.id, "5m");
+  if (authParty == "google") {
+    const verificationToken = generateJWTToken(newUser.id, "5m");
 
-  const isSent = await SendMail({
-    to: newUser.email,
-    subject: "Email Verification",
-    html: emailVerification(
-      newUser.name,
-      `${process.env.SERVER}/api/auth/verify-email?token=${verificationToken}`,
-      new Date().getFullYear.toString()
-    ),
-  });
+    const isSent = await SendMail({
+      to: newUser.email,
+      subject: "Email Verification",
+      html: emailVerification(
+        newUser.name,
+        `${process.env.SERVER}/api/auth/verify-email?token=${verificationToken}`,
+        new Date().getFullYear.toString()
+      ),
+    });
 
-  if (!isSent)
-    throw new AppError(
-      "User created but failed to send verification email.",
-      400
-    );
+    if (!isSent)
+      throw new AppError(
+        "User created but failed to send verification email.",
+        400
+      );
 
-  res.status(200).json({
+    res.status(200).json({
+      ok: true,
+      msg: "User registered successfully. Please check your email inbox for verification.",
+    });
+    return;
+  }
+
+  const accessToken = generateJWTToken(newUser.id, process.env.ACCESS_TOKEN_EXPIRY as JWTExpiresIn)
+  
+  res.cookie('accessToken', accessToken, {
+    httpOnly: true,
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
+  }).json({
     ok: true,
-    msg: "User registered successfully. Please check your email inbox for verification.",
-  });
+    msg: "Logged in successfully."
+  })
 };
 
 const verifyEmail = async (req: express.Request, res: express.Response) => {
@@ -97,7 +112,6 @@ const verifyEmail = async (req: express.Request, res: express.Response) => {
 };
 
 const login = async (req: express.Request, res: express.Response) => {
-
   if (
     !req.query.email_or_username ||
     typeof req.query.email_or_username !== "string" ||
@@ -107,19 +121,24 @@ const login = async (req: express.Request, res: express.Response) => {
     throw new AppError("Email or Username and Password required.", 400);
 
   const doesUserExists = await userModel.findOne({
-    $or: [{ email: req.query.email_or_username }, { username: req.query.email_or_username }],
+    $or: [
+      { email: req.query.email_or_username },
+      { username: req.query.email_or_username },
+    ],
   });
 
   if (!doesUserExists) throw new AppError("User not found.", 404);
 
-  const isPassword = await bcryptjs.compare(req.query.password, doesUserExists.password);
+  const isPassword = await bcryptjs.compare(
+    req.query.password,
+    doesUserExists.password
+  );
 
   if (!isPassword) throw new AppError("Incorrect Password.", 400);
 
   const accessToken = generateJWTToken(doesUserExists.id, "30d");
 
-  const {password, ...userWithOutPass} = doesUserExists.toObject();
-
+  const { password, ...userWithOutPass } = doesUserExists.toObject();
 
   res
     .status(200)
@@ -129,12 +148,44 @@ const login = async (req: express.Request, res: express.Response) => {
     })
     .json({
       ok: true,
-      accessToken: process.env.NODE_ENV === 'development'?accessToken:'',
+      accessToken: process.env.NODE_ENV === "development" ? accessToken : "",
       msg: "Login successful.",
-      data: userWithOutPass
+      data: userWithOutPass,
     });
+};
+
+const googleAuth = async (
+  req: express.Request,
+  res: express.Response
+): Promise<void> => {
+  const { name, profile_pic, email } = req.user as {
+    name: string;
+    profile_pic: string;
+    email: string;
+  };
+
+  const doesUserExists = await userModel.findOne({ email });
+  if (!doesUserExists) {
+    res.redirect(
+      `${process.env.CLIENT_GOOGLE_SIGNUP_URL}?name=${name}&profile_pic=${profile_pic}&email=${email}`
+    );
+    return;
+  }
+
+  if (!doesUserExists.is_verified) {
+    doesUserExists.is_verified = true;
+    await doesUserExists.save();
+  }
+
+  const accessToken = generateJWTToken(
+    doesUserExists.id,
+    process.env.ACCESS_TOKEN_EXPIRY as JWTExpiresIn
+  );
+
+  res.redirect(`${process.env.CLIENT_URL}?accessToken=${accessToken}`);
 };
 
 export const SignUp = AsyncRequestHandler(signUp);
 export const VerifyEmail = AsyncRequestHandler(verifyEmail);
 export const Login = AsyncRequestHandler(login);
+export const GoogleAuth = AsyncRequestHandler(googleAuth);

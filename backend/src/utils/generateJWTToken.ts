@@ -2,11 +2,11 @@ import jwt, { JwtPayload, SignOptions } from "jsonwebtoken";
 import AppError from "./appError";
 
 
-type jwtExpiresIn = `${number}${"s" | "m" | "h" | "d" | "w"}`;
+export type JWTExpiresIn = `${number}${"s" | "m" | "h" | "d" | "w"}`;
 
 
 
-export const generateJWTToken = (userId: string, expiresIn: jwtExpiresIn): string => {
+export const generateJWTToken = (userId: string, expiresIn: JWTExpiresIn): string => {
   if (!process.env.JWT_SECRET) {
     throw new Error("JWT_SECRET is not defined in environment variables");
   }
