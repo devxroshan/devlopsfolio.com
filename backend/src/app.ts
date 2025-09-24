@@ -10,11 +10,15 @@ configDotenv()
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+// Config
 import connectDB from './config/db';
+
+// Utils
+import { errorHandler } from './midddlewares/error-handler.middleware';
 
 // Routes
 import authRoutes from './routes/auth.routes'
-import { errorHandler } from './midddlewares/error-handler.middleware';
+import profileRoutes from './routes/profile.routes'
 
 
 // Connect to the database
@@ -53,6 +57,7 @@ passport.use(new GoogleStrategy({
 
 // Routes
 app.use('/api/v1/auth', authRoutes)
+app.use('/api/v1/profile', profileRoutes)
 
 
 app.use(errorHandler)

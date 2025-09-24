@@ -5,7 +5,7 @@ import bcryptjs from "bcryptjs";
 import { emailVerification, welcomeEmail } from "../config/email-templates";
 
 // Models
-import userModel from "../models/user.model";
+import userModel, { ERole } from "../models/user.model";
 
 // Utils
 import AppError from "../utils/appError";
@@ -28,6 +28,8 @@ const signUp = async (req: express.Request, res: express.Response) => {
 
   if (isUsernameExists) throw new AppError("Username already exists.", 400);
 
+  if(![ERole.DEVELOPER, ERole.RECRUITER].includes(req.body.role as ERole)) throw new AppError("Invalid role.", 400)
+
   const hashSalt = await bcryptjs.genSalt(
     parseInt(process.env.SALT_ROUNDS as string)
   );
@@ -38,11 +40,12 @@ const signUp = async (req: express.Request, res: express.Response) => {
     name: req.body.name,
     email: req.body.email,
     password: hashedPassword,
+    role: req.body.role as ERole
   });
 
   if (!newUser) throw new AppError("Internal Server Error.", 500);
 
-  if (authParty == "google") {
+  if (authParty != "google" || authParty == undefined) {
     const verificationToken = generateJWTToken(newUser.id, "5m");
 
     const isSent = await SendMail({

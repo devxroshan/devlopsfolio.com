@@ -1,6 +1,6 @@
 import express from 'express'
 import AppError from '../utils/appError'
-import { verifyAccessToken } from '../utils/verifyJWTToken'
+import { verifyJWTToken } from '../utils/verifyJWTToken'
 
 import userModel, {IUser} from '../models/user.model'
 
@@ -19,12 +19,12 @@ export const isLoggedIn = async (req: express.Request, res: express.Response, ne
         throw new AppError('AccessToken not found.', 400)
     }
 
-    const verifiedToken = verifyAccessToken(accessToken);
+    const verifiedToken = verifyJWTToken(accessToken);
     if(!verifiedToken)
         throw new AppError('Unable to verify access token.', 400)
 
     try {
-        const user = await userModel.findById(accessToken.userId)
+        const user = await userModel.findById(verifiedToken.userId)
         if(!user)
             throw new AppError('Invalid access token.', 400)
     

@@ -1,12 +1,17 @@
 import mongoose, { Schema } from "mongoose";
 
+export enum ERole {
+    DEVELOPER = 'developer',
+    RECRUITER = 'recruiter'
+}
+
 export interface IUser extends mongoose.Document {
     username: string,
     name: string,
     email: string,
     password: string,
     is_verified: boolean,
-    profile_pic: string,
+    role: ERole
 }
 
 const userSchema:Schema<IUser> = new Schema<IUser>({
@@ -15,7 +20,7 @@ const userSchema:Schema<IUser> = new Schema<IUser>({
     email: {type: String, required: [true, 'Email is required.'], unique: [true, 'Email must be unique.']},
     password: {type: String, required: [true, 'Password is required.']},
     is_verified: {type: Boolean, default: false},
-    profile_pic: {type: String, default: ''}
+    role: {type: String, enum: ERole, required: [true, 'Role is required.']}
 }, {timestamps: true})
 
 export default mongoose.model<IUser>('User', userSchema)

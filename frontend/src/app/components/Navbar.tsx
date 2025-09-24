@@ -10,8 +10,8 @@ interface ILink {
 const Navbar = () => {
     const links: ILink[] = [
         {
-            path: '/',
-            pathName: 'Featured'
+            path: '/projects',
+            pathName: 'Projects'
         },
         {
             path: '/find-devs',
@@ -28,7 +28,7 @@ const Navbar = () => {
     ]
 
   return <nav className="w-[100vw] py-2 px-5 h-14 flex items-center justify-center gap-96 bg-white/10 backdrop-blur-xl fixed select-none top-0">
-    <div className="text-white font-medium text-lg">devlopsfolio</div>
+    <Link href={'/'} className="text-white font-medium text-lg">devlopsfolio</Link>
 
     <div className="flex items-center justify-between gap-6">
         {links.map((link, index) => (

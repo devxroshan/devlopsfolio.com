@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <div className="mt-14">
@@ -8,7 +10,7 @@ export default function Home() {
         <div className="flex mt-8 gap-3 w-full items-center justify-center">
           <button className="bg-white rounded-full hover:bg-white/85 transition-all duration-250 w-[25vw] cursor-pointer py-3 font-medium text-lg">Join as Developer</button>
 
-          <button className="hover:bg-white rounded-full border border-white cursor-pointer transition-all text-primary-text hover:text-black duration-250 w-[25vw] py-3 font-medium text-lg">Sign In</button>
+          <Link href={'/auth/signin'} className="hover:bg-white rounded-full text-center border border-white cursor-pointer transition-all text-primary-text hover:text-black duration-250 w-[25vw] py-3 font-medium text-lg">Sign In</Link>
         </div>
       </section>
     </div>
