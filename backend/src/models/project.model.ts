@@ -7,7 +7,6 @@ export interface IProject extends mongoose.Document {
   tech_stack: string[];
   github_url: string;
   demo_url?: string;
-  likes_count: number;
   views_count: number;
 }
 
@@ -18,7 +17,6 @@ const projectSchema = new mongoose.Schema<IProject>({
     tech_stack: { type: [String], required: true },
     github_url: { type: String, required: true },
     demo_url: { type: String },
-    likes_count: { type: Number, default: 0 },
     views_count: { type: Number, default: 0 },
 }, { timestamps: true
 })
