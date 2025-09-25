@@ -30,7 +30,7 @@ export interface IProfile extends mongoose.Document {
 }
 
 const profileSchema:mongoose.Schema<IProfile> = new mongoose.Schema<IProfile>({
-    userId: {type:mongoose.Schema.Types.ObjectId, required: [true, 'UserId required.']},
+    userId: {type:mongoose.Schema.Types.ObjectId, required: [true, 'UserId required.'], ref:'User', unique: [true, 'Profile for this user already exists.']},
     bio: {type: String, default: ""},
     profile_pic: {type: String, default: ""},
     website: {type: String, default: ""},

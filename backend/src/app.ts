@@ -19,6 +19,7 @@ import { errorHandler } from './midddlewares/error-handler.middleware';
 // Routes
 import authRoutes from './routes/auth.routes'
 import profileRoutes from './routes/profile.routes'
+import projectRoutes from './routes/project.routes'
 
 
 // Connect to the database
@@ -58,6 +59,7 @@ passport.use(new GoogleStrategy({
 // Routes
 app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/profile', profileRoutes)
+app.use('/api/v1/project', projectRoutes)
 
 
 app.use(errorHandler)

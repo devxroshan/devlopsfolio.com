@@ -39,3 +39,11 @@ export const profileSchema = z.object({
   experience_in_year: z.number().default(0),
   worked_at: z.string().max(200, 'Max limit reached.').default(''),
 });
+
+export const projectSchema = z.object({
+  title: z.string().min(1, 'Title is required.'),
+  description: z.string().min(1, 'Description is required.'),
+  tech_stack: z.array(z.string()).min(1, 'At least one tech stack is required.'),
+  github_url: z.string().url('Invalid GitHub URL.'),
+  demo_url: z.string().url('Invalid Demo URL.').optional(),
+});
