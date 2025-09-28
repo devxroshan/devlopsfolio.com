@@ -47,3 +47,14 @@ export const projectSchema = z.object({
   github_url: z.string().url('Invalid GitHub URL.'),
   demo_url: z.string().url('Invalid Demo URL.').optional(),
 });
+
+
+export const companySchema = z.object({
+    name: z.string().min(1, 'Company name is required.'),
+    address: z.string().min(1, 'Address is required.'),
+    website: z.string().min(1, 'Website is required.'),
+    industry: z.string().min(1, 'Industry is required.'),
+    established_year: z.number().max(new Date().getFullYear(), 'Established year seems invalid.'),
+    description: z.string().min(1, 'Description is required.').max(1000, 'Max description limit reached.'),
+    logo_url: z.string().url('Invalid Logo URL.'),
+});

@@ -21,7 +21,7 @@ import authRoutes from './routes/auth.routes'
 import profileRoutes from './routes/profile.routes'
 import projectRoutes from './routes/project.routes'
 import commentRoutes from './routes/comment.routes'
-
+import companyRoutes from './routes/company.routes';
 
 // Connect to the database
 connectDB();
@@ -62,6 +62,7 @@ app.use('/api/v1/auth', authRoutes)
 app.use('/api/v1/profile', profileRoutes)
 app.use('/api/v1/project', projectRoutes)
 app.use('/api/v1/comment', commentRoutes)
+app.use('/api/v1/company', companyRoutes)
 
 
 app.use(errorHandler)

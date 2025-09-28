@@ -19,7 +19,7 @@ export const schemaValidator = (schema: ZodObject<any>) => {
         res.status(400).json({
             ok: false,
           msg: "Invalid request body",
-          errors: errors,
+          errors,
         });
         return;
       }
