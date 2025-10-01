@@ -68,6 +68,22 @@ const updateCompany = async (req: express.Request, res:express.Response):Promise
     });
 }
 
+const changeCompanyIcon = async (req: express.Request, res:express.Response):Promise<void> => {
+    // Functionality to be implemented later.
+    res.status(200).json({
+        ok: true,
+        msg: 'Change company icon - Not implemented yet',
+    });
+}
+
+const removeCompanyIcon = async (req: express.Request, res:express.Response):Promise<void> => {
+    // Functionality to be implemented later.
+    res.status(200).json({
+        ok: true,
+        msg: 'Company icon removed - Not implemented yet',
+    });
+}
+
 const deleteCompany = async (req: express.Request, res:express.Response):Promise<void> => {
     const existingCompany = await companyModel.findOne({userId: req.signedInUser?.id});
     if(!existingCompany){
@@ -86,4 +102,6 @@ const deleteCompany = async (req: express.Request, res:express.Response):Promise
 
 export const CreateCompany = AsyncRequestHandler(createCompany);
 export const UpdateCompany = AsyncRequestHandler(updateCompany);
+export const ChangeCompanyIcon = AsyncRequestHandler(changeCompanyIcon);
+export const RemoveCompanyIcon = AsyncRequestHandler(removeCompanyIcon);
 export const DeleteCompany = AsyncRequestHandler(deleteCompany);

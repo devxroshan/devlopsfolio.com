@@ -9,7 +9,7 @@ import { schemaValidator } from '../midddlewares/schema-validator.middleware';
 
 
 // Controllers
-import { CreateCompany, UpdateCompany, DeleteCompany } from '../controllers/company.controller';
+import { CreateCompany, UpdateCompany, DeleteCompany, ChangeCompanyIcon, RemoveCompanyIcon } from '../controllers/company.controller';
 
 
 const router:express.Router = express.Router();
@@ -17,7 +17,9 @@ const router:express.Router = express.Router();
 
 router.post('/', isLoggedIn,schemaValidator(companySchema), CreateCompany);
 
-router.put('/update', isLoggedIn,schemaValidator(companySchema.omit({logo_url: true})), UpdateCompany); 
+router.put('/update', isLoggedIn,schemaValidator(companySchema.omit({logo_url: true})), UpdateCompany);
+router.put('/change-icon', isLoggedIn, ChangeCompanyIcon);
+router.put('/remove-icon', isLoggedIn, RemoveCompanyIcon);
 
 router.delete('/', isLoggedIn, DeleteCompany)
 
