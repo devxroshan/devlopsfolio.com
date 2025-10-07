@@ -27,7 +27,7 @@ const createCompany = async (req: express.Request, res:express.Response):Promise
     }
 
     const newCompany = await companyModel.create({
-        userId: req.signedInUser?.id,
+        recruiter_id: req.signedInUser?.id,
         ...compnayInfo
     });
 

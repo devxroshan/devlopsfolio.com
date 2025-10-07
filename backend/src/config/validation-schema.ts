@@ -57,4 +57,5 @@ export const companySchema = z.object({
     established_year: z.number().max(new Date().getFullYear(), 'Established year seems invalid.'),
     description: z.string().min(1, 'Description is required.').max(1000, 'Max description limit reached.'),
     logo_url: z.string().url('Invalid Logo URL.'),
+    email: z.string().email('Invalid company email.'),
 });
