@@ -72,7 +72,7 @@ const deleteMessage = async (req: express.Request, res: express.Response):Promis
     if(!message)
         throw new AppError('Message not found', 404);
 
-    if(message.sender.toString() !== req.signedInUser?.id.toString() && message.recipient.toString() !== req.signedInUser?.id.toString())
+    if(message.sender.toString() !== req.signedInUser?.id.toString())
         throw new AppError('You are not authorized to delete this message', 403);
     
     await message.deleteOne();
