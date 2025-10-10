@@ -1,6 +1,11 @@
 import { Request, Response } from "express";
+import multer from "multer";
+import { InputFile } from "node-appwrite/file";
+import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
 // Config
+import { storage } from "../config/appwrite.config";
 
 // Middlewares
 
@@ -11,6 +16,9 @@ import projectModel, { IProject } from "../models/project.model";
 import { AsyncRequestHandler } from "../utils/asyncRequestHandler";
 import AppError from "../utils/appError";
 import likeModel from "../models/like.model";
+
+import { multerStorage } from "../app";
+import { uploadMulterFiles } from "../utils/multerUpload";
 
 const createProject = async (req: Request, res: Response): Promise<void> => {
   const project_info: Omit<IProject, "userId"> = req.body;
@@ -154,12 +162,71 @@ const viewProject = async (req: Request, res: Response): Promise<void> => {
   });
 };
 
+const addProjectImg = async (req: Request, res: Response): Promise<void> => {
+  const projectId = req.query.project_id;
 
-const addProjectImg = async (req: Request, res: Response):Promise<void> => {
-  
-}
+  let projectImgURL: string[] = [];
+  let files: Express.Multer.File[] = [];
+
+  if (
+    !projectId ||
+    typeof projectId !== "string" ||
+    mongoose.Types.ObjectId.isValid(projectId) === false
+  )
+    throw new AppError("Project ID required.", 400);
 
 
+    await uploadMulterFiles(req, res)
+
+    files = req.files as Express.Multer.File[]
+
+  const isAllUploaded = await Promise.all(
+    files.map(async (file) => {
+      const fileId:string = uuidv4()
+
+      const isUploaded = await storage.createFile(
+        process.env.STORAGE_BUCKET_ID as string,
+        `${fileId}`,
+        InputFile.fromBuffer(file.buffer, `${fileId}.jpg`)
+      );
+
+      if (!isUploaded)
+        return res.status(500).json({
+          ok: false,
+          msg: "Failed to upload project img.",
+        });
+
+      projectImgURL.push(
+        `https://fra.cloud.appwrite.io/v1/storage/buckets/${
+          process.env.STORAGE_BUCKET_ID as string
+        }/files/${fileId}/view?project=${
+          process.env.APPWRITE_PROJECT_ID as string
+        }&mode=admin?refreshToken=${Date.now()}`
+      );
+    })
+  );
+
+  if (!isAllUploaded)
+    res.status(500).json({
+      ok: false,
+      msg: "Failed to upload project img.",
+    });
+
+  const isProjectUpdated = await projectModel.findByIdAndUpdate(projectId, {
+    $push: {
+      project_img: projectImgURL,
+    },
+  });
+
+  if (!isProjectUpdated)
+    throw new AppError("Failed to update project img.", 500);
+
+  res.status(200).json({
+    ok: true,
+    msg: "Project img uploaded successfully.",
+    data: projectImgURL,
+  });
+};
 
 export const CreateProject = AsyncRequestHandler(createProject);
 export const UpdateProject = AsyncRequestHandler(updateProject);
