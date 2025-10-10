@@ -40,6 +40,7 @@ app.use(passport.initialize());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(express.raw({type: '*/*', limit: '5MB'}))
 
 // PassportJS
 passport.use(new GoogleStrategy({

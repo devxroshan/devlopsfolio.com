@@ -8,6 +8,7 @@ export interface IProject extends mongoose.Document {
   github_url: string;
   demo_url?: string;
   views_count: number;
+  project_img: [string];
 }
 
 const projectSchema = new mongoose.Schema<IProject>({
@@ -17,6 +18,7 @@ const projectSchema = new mongoose.Schema<IProject>({
     tech_stack: { type: [String], required: true },
     github_url: { type: String, required: true },
     demo_url: { type: String },
+    project_img: [{type: String}],
     views_count: { type: Number, default: 0 },
 }, { timestamps: true
 })

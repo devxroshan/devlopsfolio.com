@@ -14,15 +14,18 @@ import {
   DeleteProject,
   LikeProject,
   ViewProject,
+  AddProjectImg
 } from "../controllers/project.controller";
 
 const router: express.Router = express.Router();
 
 router.post("/", isLoggedIn, schemaValidator(projectSchema), CreateProject);
 
-router.put("/update/:id", isLoggedIn, UpdateProject);
+router.patch("/add-project-img", isLoggedIn, AddProjectImg)
+router.patch("/update/:id", isLoggedIn, UpdateProject);
+router.patch("/:project_id/view", isLoggedIn, ViewProject);
+
 router.put("/:project_id/like", isLoggedIn, LikeProject);
-router.put("/:project_id/view", isLoggedIn, ViewProject);
 
 router.delete("/:project_id", isLoggedIn, DeleteProject);
 

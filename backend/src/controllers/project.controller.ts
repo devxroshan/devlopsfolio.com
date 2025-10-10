@@ -10,7 +10,6 @@ import projectModel, { IProject } from "../models/project.model";
 // Utils
 import { AsyncRequestHandler } from "../utils/asyncRequestHandler";
 import AppError from "../utils/appError";
-import commentModel from "../models/comment.model";
 import likeModel from "../models/like.model";
 
 const createProject = async (req: Request, res: Response): Promise<void> => {
@@ -148,12 +147,17 @@ const likeProject = async (req: Request, res: Response): Promise<void> => {
 
 const viewProject = async (req: Request, res: Response): Promise<void> => {
   const projectId: string = req.params.project_id;
-
+  // Functionality to be Implemented.
   res.status(200).json({
     ok: true,
     msg: `View project with ID: ${projectId} - Functionality to be implemented`,
   });
 };
+
+
+const addProjectImg = async (req: Request, res: Response):Promise<void> => {
+  
+}
 
 
 
@@ -162,3 +166,4 @@ export const UpdateProject = AsyncRequestHandler(updateProject);
 export const DeleteProject = AsyncRequestHandler(deleteProject);
 export const LikeProject = AsyncRequestHandler(likeProject);
 export const ViewProject = AsyncRequestHandler(viewProject);
+export const AddProjectImg = AsyncRequestHandler(addProjectImg);

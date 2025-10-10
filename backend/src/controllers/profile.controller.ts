@@ -15,17 +15,19 @@ import profileModel, {
 import { AsyncRequestHandler } from "../utils/asyncRequestHandler";
 import AppError from "../utils/appError";
 import userModel, { ERole } from "../models/user.model";
+import { storage } from "../config/appwrite.config";
+import { InputFile } from "node-appwrite/file";
 
 const createProfile = async (req: Request, res: Response): Promise<void> => {
   const profile_info: Omit<IProfile, "userId"> = req.body;
-
 
   const isProfileExists = await profileModel.exists({
     userId: req.signedInUser?.id,
   });
 
   if (
-    isProfileExists && req.query.createAnyWay != "true" &&
+    isProfileExists &&
+    req.query.createAnyWay != "true" &&
     !req.query.createAnyWay
   )
     throw new AppError("Profile already exists.", 400);
@@ -82,16 +84,15 @@ const updateProfile = async (req: Request, res: Response): Promise<void> => {
   } else if (field === EField.WORKED_AT) {
     profile.worked_at = fieldValue as string;
   } else if (field === EField.SKILLS) {
-    if(req.signedInUser?.role === ERole.RECRUITER)
-      throw new AppError("Recruiters cannot add skills.", 403)
+    if (req.signedInUser?.role === ERole.RECRUITER)
+      throw new AppError("Recruiters cannot add skills.", 403);
 
-    if(typeof fieldValue !== 'string' || fieldValue.trim() === '')
-      throw new AppError("Invalid skills.", 400)
+    if (typeof fieldValue !== "string" || fieldValue.trim() === "")
+      throw new AppError("Invalid skills.", 400);
 
-    const skills = fieldValue.split(',').map(skill => skill.trim());
-    for(const skill of skills) {
-      if(!profile.skills.includes(skill))
-        profile.skills.push(skill);
+    const skills = fieldValue.split(",").map((skill) => skill.trim());
+    for (const skill of skills) {
+      if (!profile.skills.includes(skill)) profile.skills.push(skill);
     }
   }
 
@@ -102,15 +103,80 @@ const updateProfile = async (req: Request, res: Response): Promise<void> => {
   });
 };
 
-const changeProfilePic = async (
-  req: Request,
-  res: Response
-): Promise<void> => {};
+const changeProfilePic = async (req: Request, res: Response): Promise<void> => {
+  if (req.body.length > 2 * 1024 * 1024)
+    // 2 * 1024 * 1024 bytes
+    throw new AppError("Profile Pic size can't be more than 2MB.", 400);
 
-const removeProfilePic = async (
-  req: Request,
-  res: Response
-): Promise<void> => {};
+  try {
+    await storage.deleteFile(
+      process.env.STORAGE_BUCKET_ID as string,
+      req.signedInUser?.id
+    );
+  } catch (error) {
+    // Pass
+  }
+
+  const isUploaded = await storage.createFile(
+    process.env.STORAGE_BUCKET_ID as string,
+    req.signedInUser?.id,
+    InputFile.fromBuffer(req.body, `${req.signedInUser?.id}.jpg`)
+  );
+
+  if (!isUploaded) throw new AppError("Failed to upload profile pic.", 500);
+
+  const isUpdated = await profileModel.findOneAndUpdate(
+    { userId: req.signedInUser?.id },
+    {
+      $set: {
+        profile_pic: `https://fra.cloud.appwrite.io/v1/storage/buckets/${
+          process.env.STORAGE_BUCKET_ID as string
+        }/files/${req.signedInUser?.id}/view?project=${
+          process.env.APPWRITE_PROJECT_ID as string
+        }&mode=admin?refreshToken=${Date.now()}`,
+      },
+    }
+  );
+
+  if (!isUpdated)
+    throw new AppError("Failed to update your profile pic url.", 400);
+
+  res.status(200).json({
+    ok: true,
+    msg: "Profile Pic changed successfully.",
+    data: `https://fra.cloud.appwrite.io/v1/storage/buckets/${
+      process.env.STORAGE_BUCKET_ID as string
+    }/files/${req.signedInUser?.id}/view?project=${
+      process.env.APPWRITE_PROJECT_ID as string
+    }&mode=admin?refreshToken=${Date.now()}`,
+  });
+};
+
+const removeProfilePic = async (req: Request, res: Response): Promise<void> => {
+  const isDeleted = await storage.deleteFile(
+    process.env.STORAGE_BUCKET_ID as string,
+    req.signedInUser?.id
+  );
+
+  if (!isDeleted)
+    throw new AppError("Failed to delete profile pic. Try again later.", 500);
+
+  const isProfileUpdated = await profileModel.findOneAndUpdate(
+    { userId: req.signedInUser?.id },
+    {
+      $set: {
+        profile_pic: "",
+      },
+    }
+  );
+
+  if (!isProfileUpdated) throw new AppError("Failed to update profile.", 500);
+
+  res.status(200).json({
+    ok: true,
+    msg: "Profile pic removed successfully.",
+  });
+};
 
 const removeSocialMediaLink = async (
   req: Request,
@@ -118,42 +184,42 @@ const removeSocialMediaLink = async (
 ): Promise<void> => {
   const { linkIndex } = req.query;
 
-  if (!linkIndex || Number.isNaN(linkIndex)) throw new AppError("Link index required.", 400);
+  if (!linkIndex || Number.isNaN(linkIndex))
+    throw new AppError("Link index required.", 400);
 
   const profile = await profileModel.findOne({
     userId: req.signedInUser?.id,
   });
 
-  if(!profile)
-    throw new AppError('Profile not found.', 404)
+  if (!profile) throw new AppError("Profile not found.", 404);
 
-  if(Number(linkIndex) > profile.social_media_links.length || Number(linkIndex) < 0)
-    throw new AppError('Link index is out of range.', 400)
+  if (
+    Number(linkIndex) > profile.social_media_links.length ||
+    Number(linkIndex) < 0
+  )
+    throw new AppError("Link index is out of range.", 400);
 
   profile.social_media_links.splice(Number(linkIndex) - 1, 1);
   await profile.save();
 
   res.status(200).json({
     ok: true,
-    msg: 'Link removed successfully.'
-  })
+    msg: "Link removed successfully.",
+  });
 };
 
-const deleteProfile = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-    const isDeleted = await profileModel.deleteOne({userId: req.signedInUser?.id})
+const deleteProfile = async (req: Request, res: Response): Promise<void> => {
+  const isDeleted = await profileModel.deleteOne({
+    userId: req.signedInUser?.id,
+  });
 
-    if(!isDeleted)
-      throw new AppError("Unable to delete profile.", 500)
+  if (!isDeleted) throw new AppError("Unable to delete profile.", 500);
 
-    res.status(200).json({
-      ok: false,
-      msg: 'Profile deleted successfully.'
-    })
+  res.status(200).json({
+    ok: false,
+    msg: "Profile deleted successfully.",
+  });
 };
-
 
 export const CreateProfile = AsyncRequestHandler(createProfile);
 export const UpdateProfile = AsyncRequestHandler(updateProfile);
