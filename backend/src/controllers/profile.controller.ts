@@ -19,6 +19,7 @@ import userModel, { ERole } from "../models/user.model";
 const createProfile = async (req: Request, res: Response): Promise<void> => {
   const profile_info: Omit<IProfile, "userId"> = req.body;
 
+
   const isProfileExists = await profileModel.exists({
     userId: req.signedInUser?.id,
   });
@@ -56,6 +57,7 @@ const updateProfile = async (req: Request, res: Response): Promise<void> => {
     EField.SOCIAL_MEDIA_LINKS,
     EField.WEBSITE,
     EField.WORKED_AT,
+    EField.SKILLS,
   ].includes(field as EField);
 
   if (!fieldValue || !field || !isInField)
@@ -79,6 +81,18 @@ const updateProfile = async (req: Request, res: Response): Promise<void> => {
     profile.website = fieldValue as string;
   } else if (field === EField.WORKED_AT) {
     profile.worked_at = fieldValue as string;
+  } else if (field === EField.SKILLS) {
+    if(req.signedInUser?.role === ERole.RECRUITER)
+      throw new AppError("Recruiters cannot add skills.", 403)
+
+    if(typeof fieldValue !== 'string' || fieldValue.trim() === '')
+      throw new AppError("Invalid skills.", 400)
+
+    const skills = fieldValue.split(',').map(skill => skill.trim());
+    for(const skill of skills) {
+      if(!profile.skills.includes(skill))
+        profile.skills.push(skill);
+    }
   }
 
   await profile.save();

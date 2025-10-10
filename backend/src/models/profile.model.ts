@@ -14,7 +14,8 @@ export enum EField {
     LOCATION = 'location',
     AVAILABILITY = 'availability',
     EXPERIENCE_IN_YEAR = 'experience_in_year',
-    WORKED_AT = 'worked_at'
+    WORKED_AT = 'worked_at',
+    SKILLS = 'skills'
 }
 
 export interface IProfile extends mongoose.Document {
@@ -26,7 +27,8 @@ export interface IProfile extends mongoose.Document {
     location: string,
     availability: EAvailability,
     experience_in_year: number,
-    worked_at: string
+    worked_at: string,
+    skills: [string]
 }
 
 const profileSchema:mongoose.Schema<IProfile> = new mongoose.Schema<IProfile>({
@@ -38,7 +40,8 @@ const profileSchema:mongoose.Schema<IProfile> = new mongoose.Schema<IProfile>({
     location: {type: String, default: ''},
     availability:{type: String, enum: EAvailability, default: EAvailability.FREELANCE},
     experience_in_year: {type: Number, default: 0},
-    worked_at: {type: String}
+    worked_at: {type: String},
+    skills: [{type: String}]
 }, {timestamps: true})
 
 export default mongoose.model<IProfile>('Profile', profileSchema)

@@ -38,6 +38,7 @@ export const profileSchema = z.object({
   availability: z.enum([EAvailability.FREELANCE, EAvailability.NOT_LOOKING, EAvailability.OPEN]).default(EAvailability.FREELANCE),
   experience_in_year: z.number().default(0),
   worked_at: z.string().max(200, 'Max limit reached.').default(''),
+  skills: z.array(z.string()).min(1, 'At least one skill is required.'),
 });
 
 export const projectSchema = z.object({

@@ -1,0 +1,20 @@
+import express from 'express';
+
+
+// Controllers
+import { GetUserProfile,
+    SearchDevelopers
+ } from '../controllers/user.controller';
+
+
+// Middlewares
+import { isLoggedIn } from '../midddlewares/is-logged-in.middleware';
+
+const router:express.Router = express.Router();
+
+
+router.get('/profile',isLoggedIn, GetUserProfile); // GET /api/v1/user/profile?username=someusername, to get the self profile of the logged in user no need to pass username query param, it will be fetched from the token
+router.get('/search-by-skills', isLoggedIn, SearchDevelopers);
+
+
+export default router;

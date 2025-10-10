@@ -24,6 +24,8 @@ import commentRoutes from './routes/comment.routes'
 import companyRoutes from './routes/company.routes';
 import contactRoutes from './routes/contact.routes';
 import messageRoutes from './routes/message.routes';
+import userRoutes from './routes/user.routes';
+
 
 // Connect to the database
 connectDB();
@@ -67,7 +69,7 @@ app.use('/api/v1/comment', commentRoutes)
 app.use('/api/v1/company', companyRoutes)
 app.use('/api/v1/contact', contactRoutes)
 app.use('/api/v1/message', messageRoutes)
-
+app.use('/api/v1/user', userRoutes)
 
 app.use(errorHandler)
 
