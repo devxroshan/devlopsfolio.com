@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 
 // Utils
 import { AsyncRequestHandler } from "../utils/asyncRequestHandler";
@@ -7,9 +8,10 @@ import AppError from "../utils/appError";
 // Models
 import userModel, { IUser } from "../models/user.model";
 import profileModel, { IProfile } from "../models/profile.model";
-import mongoose from "mongoose";
 import projectModel, { IProject } from "../models/project.model";
-import e from "express";
+import likeModel from "../models/like.model";
+import commentModel from "../models/comment.model";
+import replyCommentModel from "../models/replied-comment-model";
 
 const getUserProfile = async (req: express.Request, res: express.Response) => {
   type TUser = IUser & { profile?: IProfile };
@@ -100,9 +102,8 @@ const getAllProjects = async (
     if (!mongoose.Types.ObjectId.isValid(userId))
       throw new AppError("Invalid user id.", 400);
 
-    const isUser = await userModel.findById(userId)
-    if(!isUser)
-      throw new AppError('User not found.', 404)
+    const isUser = await userModel.findById(userId);
+    if (!isUser) throw new AppError("User not found.", 404);
 
     projects = await projectModel.find({ userId });
   }
@@ -120,24 +121,96 @@ const getAllProjects = async (
   });
 };
 
-const getProject = async (req: express.Request, res: express.Response): Promise<void> => {
+const getProject = async (
+  req: express.Request,
+  res: express.Response
+): Promise<void> => {
   const projectId = req.params.project_id;
 
-  if(!projectId || typeof projectId !== "string" || !mongoose.Types.ObjectId.isValid(projectId))
-    throw new AppError("Project ID required.", 400)
+  if (
+    !projectId ||
+    typeof projectId !== "string" ||
+    !mongoose.Types.ObjectId.isValid(projectId)
+  )
+    throw new AppError("Project ID required.", 400);
 
-  const project = await projectModel.findById(projectId)
-  if(!project)
-    throw new AppError('Project not found.', 404)
+  const project = await projectModel.findById(projectId);
+  if (!project) throw new AppError("Project not found.", 404);
+
+  const likes = await likeModel.find({ project_id: project.id });
+  const comments = await commentModel.find({ project_id: project.id });
+
+
+  const modifiedProject = {
+    ...project.toObject(),
+    likes_count: likes.length,
+    comment_counts: comments.length,
+  };
 
   res.status(200).json({
     ok: true,
-    msg: 'Project fetched successfully.',
-    data: project
-  })
+    msg: "Project fetched successfully.",
+    data: modifiedProject,
+  });
 };
+
+const getLikes = async (req: express.Request, res: express.Response):Promise<void> => {
+  const projectId = req.params.project_id
+
+  if(!projectId || typeof projectId !== 'string' || !mongoose.Types.ObjectId.isValid(projectId))
+    throw new AppError("Invalid Project ID.", 400)
+
+  const likes = await likeModel.find({project_id: projectId})
+
+  if(likes.length == 0){
+    res.status(200).json({
+      ok: true,
+      msg: "No Likes"
+    })
+    return;
+  }
+
+  const usersWhoLiked = await Promise.all(
+    likes.map(async like => {
+      return await userModel.findById(like.liked_by).select("_id username name profile")
+    })
+  )
+
+  res.status(200).json({
+    ok: true,
+    msg: "Liked data fetched successfully.",
+    data: usersWhoLiked
+  })
+}
+
+const getComments = async (req: express.Request, res: express.Response):Promise<void> => {
+  const projectId = req.params.project_id
+
+  if(!projectId || typeof projectId !== 'string' || !mongoose.Types.ObjectId.isValid(projectId))
+    throw new AppError("Invalid Project ID", 400)
+
+  const comments = await commentModel.find({project_id: projectId})
+  
+  const commentsWithReplies = await Promise.all(
+    comments.map(async comment => {
+      const replies = await replyCommentModel.find({reply_on: comment.id})
+      return {
+        ...comment,
+        replies
+      }
+    })
+  )
+
+  res.status(200).json({
+    ok: true,
+    msg: 'Comment fetched successfully.',
+    data: commentsWithReplies
+  })
+}
 
 export const GetUserProfile = AsyncRequestHandler(getUserProfile);
 export const SearchDevelopers = AsyncRequestHandler(searchDevelopers);
 export const GetAllProjects = AsyncRequestHandler(getAllProjects);
 export const GetProject = AsyncRequestHandler(getProject);
+export const GetLikes = AsyncRequestHandler(getLikes)
+export const GetComments = AsyncRequestHandler(getComments)

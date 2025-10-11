@@ -5,7 +5,9 @@ import express from 'express';
 import { GetUserProfile,
     SearchDevelopers,
     GetAllProjects,
-    GetProject
+    GetProject,
+    GetLikes,
+    GetComments
  } from '../controllers/user.controller';
 
 
@@ -19,6 +21,8 @@ router.get('/profile',isLoggedIn, GetUserProfile); // GET /api/v1/user/profile?u
 router.get('/search-by-skills', isLoggedIn, SearchDevelopers);
 router.get('/all-projects', isLoggedIn, GetAllProjects) //projects?user_id=....
 router.get('/project/:project_id', isLoggedIn, GetProject)
+router.get('/project/likes/:project_id', isLoggedIn, GetLikes)
+router.get('/project/comments/:project_id', isLoggedIn, GetComments)
 
 
 export default router;
