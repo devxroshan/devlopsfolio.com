@@ -1,6 +1,9 @@
 import express from "express";
 import mongoose from "mongoose";
 
+// config
+import redisClient from "../config/redis.config"
+
 // Utils
 import { AsyncRequestHandler } from "../utils/asyncRequestHandler";
 import AppError from "../utils/appError";
@@ -19,6 +22,17 @@ const getUserProfile = async (req: express.Request, res: express.Response) => {
   const username = req.query.username;
 
   let user: Partial<TUser> | null = null;
+
+  const cachedProfile = await redisClient.get(`profile:${username?username:req.signedInUser?.username}`)
+
+  if (cachedProfile) {
+    res.status(200).json({
+      ok: true,
+      msg: "Fetched user profile successfully.",
+      data: JSON.parse(cachedProfile)
+    })
+    return;
+  }
 
   if (!username || typeof username !== "string" || username.trim() === "") {
     if (!req.signedInUser) {
@@ -42,6 +56,10 @@ const getUserProfile = async (req: express.Request, res: express.Response) => {
   const profile = await profileModel.findOne({ userId: req.signedInUser._id });
 
   if (!profile) throw new AppError("Profile not found", 404);
+
+  // Caching user profile
+  await redisClient.set(`profile:${user?.username}`, JSON.stringify({...user, ...profile.toObject()}))
+  await redisClient.expire(`profile:${user?.username}`, 60)
 
   res.status(200).json({
     ok: true,
@@ -96,6 +114,17 @@ const getAllProjects = async (
 
   let projects: IProject[] = [];
 
+  const cachedProjects = await redisClient.get(`project:${userId?userId:req.signedInUser?.id}`)
+
+  if(cachedProjects){
+    res.status(200).json({
+      ok: true,
+      msg: "Project fetched successfully.",
+      data: JSON.parse(cachedProjects)
+    })
+    return;
+  }
+
   if (!userId || typeof userId !== "string") {
     projects = await projectModel.find({ userId: req.signedInUser?.id });
   } else {
@@ -113,6 +142,10 @@ const getAllProjects = async (
       ok: true,
       msg: "No projects yet.",
     });
+
+
+    await redisClient.set(`project:${userId?userId:req.signedInUser?.id}`, JSON.stringify(projects))
+    await redisClient.expire(`project:${userId?userId:req.signedInUser?.id}`, 60)
 
   res.status(200).json({
     ok: true,
