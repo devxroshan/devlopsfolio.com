@@ -10,7 +10,7 @@ import contactRequestModel from '../models/contact-request.model'
 import companyModel from '../models/company.model';
 
 // Enums
-import { ERole } from '../models/user.model'
+import userModel, { ERole } from '../models/user.model'
 
 
 
@@ -28,6 +28,14 @@ const contactRequest = async (req: express.Request, res: express.Response):Promi
 
     if(!recruiterCompany)
         throw new AppError('You need to have a company registered to send contact requests.', 400);
+
+    const isDeveloper = await userModel.exists({
+        _id: developerId,
+        role: ERole.DEVELOPER
+    })
+
+    if(!isDeveloper)
+        throw new AppError("Developer not found.", 404)
 
     const newContactRequest = await contactRequestModel.create({
           recruiter_id: req.signedInUser?._id,

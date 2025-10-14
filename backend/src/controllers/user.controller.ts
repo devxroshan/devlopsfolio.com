@@ -2,19 +2,20 @@ import express from "express";
 import mongoose from "mongoose";
 
 // config
-import redisClient from "../config/redis.config"
+import redisClient from "../config/redis.config";
 
 // Utils
 import { AsyncRequestHandler } from "../utils/asyncRequestHandler";
 import AppError from "../utils/appError";
 
 // Models
-import userModel, { IUser } from "../models/user.model";
+import userModel, { ERole, IUser } from "../models/user.model";
 import profileModel, { IProfile } from "../models/profile.model";
 import projectModel, { IProject } from "../models/project.model";
 import likeModel from "../models/like.model";
 import commentModel from "../models/comment.model";
 import replyCommentModel from "../models/replied-comment-model";
+import contactRequestModel from "../models/contact-request.model";
 
 const getUserProfile = async (req: express.Request, res: express.Response) => {
   type TUser = IUser & { profile?: IProfile };
@@ -23,14 +24,16 @@ const getUserProfile = async (req: express.Request, res: express.Response) => {
 
   let user: Partial<TUser> | null = null;
 
-  const cachedProfile = await redisClient.get(`profile:${username?username:req.signedInUser?.username}`)
+  const cachedProfile = await redisClient.get(
+    `profile:${username ? username : req.signedInUser?.username}`
+  );
 
   if (cachedProfile) {
     res.status(200).json({
       ok: true,
       msg: "Fetched user profile successfully.",
-      data: JSON.parse(cachedProfile)
-    })
+      data: JSON.parse(cachedProfile),
+    });
     return;
   }
 
@@ -58,8 +61,11 @@ const getUserProfile = async (req: express.Request, res: express.Response) => {
   if (!profile) throw new AppError("Profile not found", 404);
 
   // Caching user profile
-  await redisClient.set(`profile:${user?.username}`, JSON.stringify({...user, ...profile.toObject()}))
-  await redisClient.expire(`profile:${user?.username}`, 60)
+  await redisClient.set(
+    `profile:${user?.username}`,
+    JSON.stringify({ ...user, ...profile.toObject() })
+  );
+  await redisClient.expire(`profile:${user?.username}`, 60);
 
   res.status(200).json({
     ok: true,
@@ -114,14 +120,16 @@ const getAllProjects = async (
 
   let projects: IProject[] = [];
 
-  const cachedProjects = await redisClient.get(`project:${userId?userId:req.signedInUser?.id}`)
+  const cachedProjects = await redisClient.get(
+    `project:${userId ? userId : req.signedInUser?.id}`
+  );
 
-  if(cachedProjects){
+  if (cachedProjects) {
     res.status(200).json({
       ok: true,
       msg: "Project fetched successfully.",
-      data: JSON.parse(cachedProjects)
-    })
+      data: JSON.parse(cachedProjects),
+    });
     return;
   }
 
@@ -143,9 +151,14 @@ const getAllProjects = async (
       msg: "No projects yet.",
     });
 
-
-    await redisClient.set(`project:${userId?userId:req.signedInUser?.id}`, JSON.stringify(projects))
-    await redisClient.expire(`project:${userId?userId:req.signedInUser?.id}`, 60)
+  await redisClient.set(
+    `project:${userId ? userId : req.signedInUser?.id}`,
+    JSON.stringify(projects)
+  );
+  await redisClient.expire(
+    `project:${userId ? userId : req.signedInUser?.id}`,
+    60
+  );
 
   res.status(200).json({
     ok: true,
@@ -173,7 +186,6 @@ const getProject = async (
   const likes = await likeModel.find({ project_id: project.id });
   const comments = await commentModel.find({ project_id: project.id });
 
-
   const modifiedProject = {
     ...project.toObject(),
     likes_count: likes.length,
@@ -187,63 +199,139 @@ const getProject = async (
   });
 };
 
-const getLikes = async (req: express.Request, res: express.Response):Promise<void> => {
-  const projectId = req.params.project_id
+const getLikes = async (
+  req: express.Request,
+  res: express.Response
+): Promise<void> => {
+  const projectId = req.params.project_id;
 
-  if(!projectId || typeof projectId !== 'string' || !mongoose.Types.ObjectId.isValid(projectId))
-    throw new AppError("Invalid Project ID.", 400)
+  if (
+    !projectId ||
+    typeof projectId !== "string" ||
+    !mongoose.Types.ObjectId.isValid(projectId)
+  )
+    throw new AppError("Invalid Project ID.", 400);
 
-  const likes = await likeModel.find({project_id: projectId})
+  const likes = await likeModel.find({ project_id: projectId });
 
-  if(likes.length == 0){
+  if (likes.length == 0) {
     res.status(200).json({
       ok: true,
-      msg: "No Likes"
-    })
+      msg: "No Likes",
+    });
     return;
   }
 
   const usersWhoLiked = await Promise.all(
-    likes.map(async like => {
-      return await userModel.findById(like.liked_by).select("_id username name profile")
+    likes.map(async (like) => {
+      return await userModel
+        .findById(like.liked_by)
+        .select("_id username name profile");
     })
-  )
+  );
 
   res.status(200).json({
     ok: true,
     msg: "Liked data fetched successfully.",
-    data: usersWhoLiked
-  })
-}
+    data: usersWhoLiked,
+  });
+};
 
-const getComments = async (req: express.Request, res: express.Response):Promise<void> => {
-  const projectId = req.params.project_id
+const getComments = async (
+  req: express.Request,
+  res: express.Response
+): Promise<void> => {
+  const projectId = req.params.project_id;
 
-  if(!projectId || typeof projectId !== 'string' || !mongoose.Types.ObjectId.isValid(projectId))
-    throw new AppError("Invalid Project ID", 400)
+  if (
+    !projectId ||
+    typeof projectId !== "string" ||
+    !mongoose.Types.ObjectId.isValid(projectId)
+  )
+    throw new AppError("Invalid Project ID", 400);
 
-  const comments = await commentModel.find({project_id: projectId})
-  
+  const comments = await commentModel.find({ project_id: projectId });
+
   const commentsWithReplies = await Promise.all(
-    comments.map(async comment => {
-      const replies = await replyCommentModel.find({reply_on: comment.id})
+    comments.map(async (comment) => {
+      const replies = await replyCommentModel.find({ reply_on: comment.id });
       return {
         ...comment,
-        replies
-      }
+        replies,
+      };
     })
-  )
+  );
 
   res.status(200).json({
     ok: true,
-    msg: 'Comment fetched successfully.',
-    data: commentsWithReplies
+    msg: "Comment fetched successfully.",
+    data: commentsWithReplies,
+  });
+};
+
+const getContactRequest = async (
+  req: express.Request,
+  res: express.Response
+): Promise<void> => {
+  const contactRequest = await contactRequestModel.find({
+    developer_id: req.signedInUser?.id,
+    is_accepted: false,
+  });
+
+  res.status(200).json({
+    ok: true,
+    msg:
+      contactRequest.length != 0
+        ? "Contact Request fetched successfully."
+        : "No Requests.",
+    data: contactRequest,
+  });
+};
+
+const getContact = async (
+  req: express.Request,
+  res: express.Response
+): Promise<void> => {
+  let contacts:(IProfile | null)[] = [];
+
+  if (req.signedInUser?.role === ERole.RECRUITER) {
+    const contactRequests = await contactRequestModel.find({
+      recruiter_id: req.signedInUser?.id,
+    });
+
+    contacts = await Promise.all(
+      contactRequests.map(async (contactRequest) => {
+        return await profileModel.findOne({
+          userId: contactRequest.developer_id,
+        });
+      })
+    );
+  } else {
+    const contactRequests = await contactRequestModel.find({
+      developer_id: req.signedInUser?.id,
+    });
+
+    contacts = await Promise.all(
+      contactRequests.map(async (contactRequest) => {
+        return await profileModel.findOne({
+          userId: contactRequest.recruiter_id,
+        });
+      })
+    );
+  }
+
+  res.status(200).json({
+    ok: true,
+    msg: "Contact fetched successfully.",
+    data: contacts
   })
-}
+};
 
 export const GetUserProfile = AsyncRequestHandler(getUserProfile);
 export const SearchDevelopers = AsyncRequestHandler(searchDevelopers);
 export const GetAllProjects = AsyncRequestHandler(getAllProjects);
 export const GetProject = AsyncRequestHandler(getProject);
-export const GetLikes = AsyncRequestHandler(getLikes)
-export const GetComments = AsyncRequestHandler(getComments)
+export const GetLikes = AsyncRequestHandler(getLikes);
+export const GetComments = AsyncRequestHandler(getComments);
+export const GetContactRequest = AsyncRequestHandler(getContactRequest);
+export const GetContact = AsyncRequestHandler(getContact);

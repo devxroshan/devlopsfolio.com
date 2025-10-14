@@ -23,6 +23,9 @@ import connectDB from "./config/db";
 // Utils
 import { errorHandler } from "./midddlewares/error-handler.middleware";
 
+// Workers
+import { SaveMessagegWorker } from "./workers/save-msg.worker";
+
 // Routes
 import authRoutes from "./routes/auth.routes";
 import profileRoutes from "./routes/profile.routes";
@@ -35,6 +38,11 @@ import userRoutes from "./routes/user.routes";
 
 // Connect to the database
 connectDB();
+
+// Workers
+SaveMessagegWorker()
+
+
 
 app.use(
   cors({

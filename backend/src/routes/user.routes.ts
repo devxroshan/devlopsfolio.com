@@ -7,7 +7,9 @@ import { GetUserProfile,
     GetAllProjects,
     GetProject,
     GetLikes,
-    GetComments
+    GetComments,
+    GetContactRequest,
+    GetContact
  } from '../controllers/user.controller';
 
 
@@ -23,6 +25,8 @@ router.get('/all-projects', isLoggedIn, GetAllProjects) //projects?user_id=....
 router.get('/project/:project_id', isLoggedIn, GetProject)
 router.get('/project/likes/:project_id', isLoggedIn, GetLikes)
 router.get('/project/comments/:project_id', isLoggedIn, GetComments)
+router.get('/contact-request', isLoggedIn, GetContactRequest)
+router.get('/contact', isLoggedIn, GetContact)
 
 
 export default router;

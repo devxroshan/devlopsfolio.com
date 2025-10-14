@@ -7,12 +7,12 @@ export const isContactAllowed = async (
   req: express.Request,
   res: express.Response, next: express.NextFunction
 ) => {
-    const {receiver_id} = req.query
+    const {receiver_id} = req.params
 
     if (!req.signedInUser?.id || !receiver_id || !mongoose.isValidObjectId(req.signedInUser?.id) || !mongoose.isValidObjectId(receiver_id))
         throw new AppError('Invalid Sender Id or Receiver Id', 400)
 
-    const contact = await ContactRequest.findOne({
+    const contact = await ContactRequest.exists({
         $or: [
             {recruiter_id:req.signedInUser?.id, developer_id:receiver_id},
             {recruiter_id: receiver_id, developer_id: req.signedInUser?.id}

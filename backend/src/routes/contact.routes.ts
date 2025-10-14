@@ -9,8 +9,7 @@ import { AcceptContactRequest, ContactRequest, DeleteContactRequest } from '../c
 
 const router:express.Router = express.Router();
 
-
-router.post('/', isLoggedIn, ContactRequest)
+router.post('/', isLoggedIn, ContactRequest) // ?developer_id=....
 
 router.patch('/accept', isLoggedIn, AcceptContactRequest) // ?contact_request_id=...
 

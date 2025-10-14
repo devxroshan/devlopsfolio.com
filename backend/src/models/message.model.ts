@@ -5,7 +5,6 @@ export interface IMessage extends mongoose.Document {
     recipient: mongoose.Types.ObjectId;
     content: string;
     is_seen: boolean;
-    is_delivered: boolean;
     is_pinned: boolean;
     replied_to?: mongoose.Schema.Types.ObjectId;
 }
@@ -15,7 +14,6 @@ const messageSchema = new mongoose.Schema<IMessage>({
     recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     content: { type: String, required: true },
     is_seen: { type: Boolean, default: false },
-    is_delivered: { type: Boolean, default: false },
     is_pinned: { type: Boolean, default: false },
     replied_to: { type: mongoose.Schema.Types.ObjectId, ref: 'Message', default: null },
 }, {
