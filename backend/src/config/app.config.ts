@@ -1,0 +1,6 @@
+const APP = {
+    MAX_MESSAGE_SAVE: 50,
+    MESSAGE_SAVE_INTERVAL_SEC: 120000
+}
+
+export default APP

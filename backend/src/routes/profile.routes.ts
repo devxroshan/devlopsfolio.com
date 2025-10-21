@@ -2,7 +2,7 @@ import express from 'express'
 
 
 // Config
-import { profileSchema } from '../config/validation-schema';
+import { profileSchema } from '../config/validation-schema.config';
 
 // Middlewares
 import { schemaValidator } from '../midddlewares/schema-validator.middleware';

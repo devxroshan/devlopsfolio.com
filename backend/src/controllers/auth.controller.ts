@@ -2,7 +2,7 @@ import express from "express";
 import bcryptjs from "bcryptjs";
 
 // Config
-import { emailVerification, welcomeEmail } from "../config/email-templates";
+import { emailVerification, welcomeEmail } from "../config/email-templates.config";
 
 // Models
 import userModel, { ERole } from "../models/user.model";

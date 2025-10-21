@@ -1,7 +1,7 @@
 import express from 'express';
 
 // Config
-import { userSignUpSchema } from '../config/validation-schema';
+import { userSignUpSchema } from '../config/validation-schema.config';
 
 
 // Middlewares

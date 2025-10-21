@@ -1,15 +1,16 @@
 import redisClient from '../config/redis.config'
-import messageModel, { IMessage } from '../models/message.model'
+import messageModel from '../models/message.model'
+import app from '../config/app.config' 
 
-const maxMessageSave = 50
+
 
 export const SaveMessagegWorker = async () => {
     setInterval(async () => {
         const messages:string[] | null = await redisClient.lrange("messages", 0, -1)
 
-        if(messages.length >= maxMessageSave && messages != null){            
+        if(messages.length >= app.MAX_MESSAGE_SAVE && messages != null){            
             await Promise.all(messages.map(async (message, index) => {
-                if(index > maxMessageSave - 1) return;
+                if(index > app.MAX_MESSAGE_SAVE - 1) return;
 
                 const parsedMsg = JSON.parse(message)
                 await messageModel.create({
@@ -25,5 +26,5 @@ export const SaveMessagegWorker = async () => {
                 await redisClient.del(`msg:${parsedMsg?.id}`)
             }))
         }
-    }, 120000)
+    }, app.MESSAGE_SAVE_INTERVAL_SEC)
 }

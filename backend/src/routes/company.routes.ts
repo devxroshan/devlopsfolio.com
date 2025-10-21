@@ -1,7 +1,7 @@
 import express from 'express';
 
 // Config
-import { companySchema } from '../config/validation-schema';
+import { companySchema } from '../config/validation-schema.config';
 
 // Middlewares
 import { isLoggedIn } from '../midddlewares/is-logged-in.middleware';

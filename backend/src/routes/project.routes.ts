@@ -1,7 +1,7 @@
 import express from "express";
 
 // Config
-import { projectSchema } from "../config/validation-schema";
+import { projectSchema } from "../config/validation-schema.config";
 
 // Middlewares
 import { isLoggedIn } from "../midddlewares/is-logged-in.middleware";
