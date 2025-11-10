@@ -1,24 +1,41 @@
-import React from "react";
+'use client';
+import React, { MouseEventHandler } from "react";
+import { useState } from "react";
 
 const SignInPage = () => {
+  // useStates
+  const [passwordVisibility, setPasswordVisibility] = useState<boolean>(false)
+
   return (
-    <div className="text-white flex items-center justify-center w-[100vw] h-[100vh]">
-      <section className="bg-foreground flex items-start justify-start py-3 px-4 border border-white/5 rounded-lg w-[60vw] h-[70vh]">
-        <div className="w-[50%] h-[100%] select-none flex flex-col gap-3 items-center justify-center">
-          <span className="text-5xl font-semibold">devlopsfolio</span>
-          <span className="text-3xl font-semibold">Welcome Back</span>
+    <>
+    <div className="bg-white border border-gray-300 shadow-md rounded-lg h-[70vh] w-[25vw] mx-auto mt-30 flex flex-col items-center justify-start py-5 px-5 gap-3 select-none">
+      <span className="font-medium text-2xl mb-6">Welcome Back</span>
+
+
+      <div className="w-full flex flex-col items-center justify-center gap-1">
+        <div className="w-full h-fit flex flex-col gap-1 items-start justify-center">  
+          <label htmlFor="email">Email*</label>
+          <input type="text" name="email" className="bg-white outline-none border border-gray-300 shadow-sm rounded-lg w-full px-2 py-1 text-lg"/>
         </div>
 
-        <div className="flex flex-col gap-3 select-none items-center justify-start w-[50%] h-[100%]">
-          <span className="text-xl font-medium">Sign In</span>
 
-          <input type="text" placeholder="Username" className="w-full outline-none border border-white/5 px-3 py-1 rounded-lg"/>
-          <input type="text" placeholder="Name" className="w-full outline-none border border-white/5 px-3 py-1 rounded-lg"/>
-          <input type="text" placeholder="Email" className="w-full outline-none border border-white/5 px-3 py-1 rounded-lg"/>
-          <input type="password" placeholder="Password" className="w-full outline-none border border-white/5 px-3 py-1 rounded-lg"/>
+        <div className="w-full h-fit flex flex-col gap-1 items-start justify-center">  
+          <label htmlFor="password">Password*</label>
+          <div className="flex w-full h-fit items-center justify-end gap-1">
+            <input type={passwordVisibility?'text':'password'} name="password" className="bg-white outline-none border border-gray-300 shadow-sm rounded-lg w-full px-2 py-1 text-lg"/>
+            <button className="fixed pr-2 cursor-pointer text-gray-900 hover:text-black" onClick={(e) => setPasswordVisibility(!passwordVisibility)}>{passwordVisibility?'Hide':'Show'}</button>
+          </div>
+          <button className="ml-auto font-medium text-gray-800 cursor-pointer hover:text-black transition-all duration-300">Forgot Password</button>
         </div>
-      </section>
+
+        <button className="bg-black hover:bg-gray-900 cursor-pointer transition-all duration-300 text-white font-medium rounded-lg w-full py-2 mt-4">Sign In</button>
+      </div>
+
+      <div className="w-40 bg-gray-400 rounded-lg h-0.5 mt-5"></div>
+
+      <button className="bg-black rounded-lg font-medium w-full duration-300 transition-all hover:bg-gray-900 cursor-pointer text-white py-2 mt-4">Continue With Google</button>
     </div>
+    </>
   );
 };
 
