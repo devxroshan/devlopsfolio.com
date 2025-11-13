@@ -1,6 +1,7 @@
 'use client';
-import React, { MouseEventHandler } from "react";
+import React from "react";
 import { useState } from "react";
+import Link from "next/link";
 
 const SignInPage = () => {
   // useStates
@@ -8,13 +9,13 @@ const SignInPage = () => {
 
   return (
     <>
-    <div className="bg-white border border-gray-300 shadow-md rounded-lg h-[70vh] w-[25vw] mx-auto mt-30 flex flex-col items-center justify-start py-5 px-5 gap-3 select-none">
+    <div className="bg-white border border-gray-300 shadow-md rounded-lg h-[75vh] w-[25vw] mx-auto mt-30 flex flex-col items-center justify-start py-5 px-5 gap-3 select-none">
       <span className="font-medium text-2xl mb-6">Welcome Back</span>
 
 
       <div className="w-full flex flex-col items-center justify-center gap-1">
         <div className="w-full h-fit flex flex-col gap-1 items-start justify-center">  
-          <label htmlFor="email">Email*</label>
+          <label htmlFor="email">Email or Username*</label>
           <input type="text" name="email" className="bg-white outline-none border border-gray-300 shadow-sm rounded-lg w-full px-2 py-1 text-lg"/>
         </div>
 
@@ -34,6 +35,13 @@ const SignInPage = () => {
       <div className="w-40 bg-gray-400 rounded-lg h-0.5 mt-5"></div>
 
       <button className="bg-black rounded-lg font-medium w-full duration-300 transition-all hover:bg-gray-900 cursor-pointer text-white py-2 mt-4">Continue With Google</button>
+
+      <div className="w-full h-fit flex items-center justify-center">
+        <span>Don't have an account?</span>
+        <Link href={
+'/auth/signup'
+        } className="text-purple-700 hover:font-medium transition-all duration-300 cursor-pointer">Sign-Up</Link>
+      </div>
     </div>
     </>
   );

@@ -10,16 +10,12 @@ interface ILink {
 const Navbar = () => {
     const links: ILink[] = [
         {
+            path: '/developers',
+            pathName: 'Developers'
+        },
+        {
             path: '/projects',
             pathName: 'Projects'
-        },
-        {
-            path: '/find-devs',
-            pathName: 'Find Devs'
-        },
-        {
-            path: '/contact',
-            pathName: 'Contact'
         },
         {
             path: '/about',
