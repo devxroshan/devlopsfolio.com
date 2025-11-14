@@ -9,6 +9,8 @@ const SignInPage = () => {
 
   return (
     <>
+    <Link href={'/'} className="absolute font-medium ml-6 -mt-26 select-none">Back to Home</Link>
+
     <div className="bg-white border border-gray-300 shadow-md rounded-lg h-[75vh] w-[25vw] mx-auto mt-30 flex flex-col items-center justify-start py-5 px-5 gap-3 select-none">
       <span className="font-medium text-2xl mb-6">Welcome Back</span>
 

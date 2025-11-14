@@ -27,7 +27,7 @@ export default function RootLayout({
       <body
         className={`${roboto.className} antialiased vsc-initialized`}
       >
-        <Navbar/>
+        {/* <Navbar/> */}
         {children}
       </body>
     </html>
