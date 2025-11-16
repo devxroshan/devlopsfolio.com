@@ -28,7 +28,7 @@ const Navbar = () => {
     ]
 
   return (
-    <nav className={`w-[100vw] h-[8vh] bg-white shadow-md ${omittedPathnames.includes(pathname)?'hidden':'flex'} items-center justify-between px-8`}>
+    <nav className={`w-full h-[8vh] bg-white shadow-md ${omittedPathnames.includes(pathname)?'hidden':'flex'} items-center justify-between px-8`}>
         <span className="font-medium text-lg">devlopsfolio</span>
 
         <div className="flex items-center justify-center gap-5">

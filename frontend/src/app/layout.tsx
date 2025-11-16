@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 
-
 // Components
 import Navbar from "./components/Navbar";
+
+// Wrappers
+import QueryProvider from "./Wrappers/QueryProvider";
 
 const roboto = Roboto({
   subsets: ["latin"],
@@ -24,11 +26,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${roboto.className} antialiased vsc-initialized`}
-      >
-        {/* <Navbar/> */}
-        {children}
+      <body className={`${roboto.className} antialiased vsc-initialized`}>
+        <QueryProvider>
+          <Navbar />
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );
