@@ -1,6 +1,22 @@
+'use client';
+import { redirect, useSearchParams } from "next/navigation";
+
+
 import DeveloperCard from "./components/DeveloperCard";
+import { useEffect } from 'react';
+
 
 export default function Home() {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    if (searchParams.get('accessToken')) {
+      document.cookie = `accessToken=${searchParams.get('accessToken')}; path=/; max-age=${30 * 24 * 60 * 60}; secure: true`; // 30 days
+      redirect('/dashboard');
+    }
+  }, [searchParams.get('accessToken')])
+  
+
   return (
     <>
       <section className="w-full h-fit py-12 flex flex-col gap-6 select-none items-center justify-center">

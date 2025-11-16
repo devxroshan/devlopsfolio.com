@@ -7,10 +7,18 @@ import { useMutation } from "@tanstack/react-query";
 
 // API
 import { LoginAPI } from "@/app/api/auth.api";
-import { AxiosError } from "axios";
 import { IAPIError } from "@/app/config/api.config";
 
+// Stores
+import { useUserStore } from "@/app/store/UserStore";
+
 const SignInPage = () => {
+  // stores actions
+  const { setUser } = useUserStore();
+
+  // stores values
+  const user = useUserStore((state) => state);
+
   // useStates
   const [passwordVisibility, setPasswordVisibility] = useState<boolean>(false);
   const [loginForm, setLoginForm] = useState<{
@@ -22,28 +30,44 @@ const SignInPage = () => {
   const loginMutation = useMutation({
     mutationFn: LoginAPI,
     onSuccess: (data) => {
-      console.log("Login Successful:", data);
+      if (data.ok) {
+        setUser(data.data);
+      }
     },
     onError: (error: IAPIError) => {
       setSignInError(error);
     },
   });
 
+  const loginHandler = () => {
+    if (
+      loginForm.email_or_username &&
+      loginForm.password &&
+      !loginMutation.isPending
+    ) {
+      loginMutation.mutate(loginForm);
+      setSignInError({} as IAPIError);
+    }
+  };
+
   return (
     <>
       <Link href={"/"} className="absolute font-medium ml-6 -mt-26 select-none">
         Back to Home
       </Link>
-
-      <div className="bg-white border border-gray-300 shadow-md rounded-lg h-[75vh] w-[25vw] mx-auto mt-30 flex flex-col items-center justify-start py-5 px-5 gap-3 select-none">
+      <div
+        className="bg-white border border-gray-300 shadow-md rounded-lg h-[75vh] w-[25vw] mx-auto mt-30 flex flex-col items-center justify-start py-5 px-5 gap-3 select-none"
+        onKeyDown={(e) => {
+          if (e.key == "Enter") {
+            loginHandler();
+          }
+        }}
+      >
         <span className="font-medium text-2xl mb-6">Welcome Back</span>
 
         <div className="w-full flex flex-col items-center justify-center gap-1">
           <div className="w-full h-fit flex flex-col gap-1 items-start justify-center">
-            <div className="flex w-full items-center gap-2">
-              <label htmlFor="email">Email or Username*</label>
-              {signInError.status == 404 && <span className="text-red-700 font-medium text-xs">{signInError.msg}</span>}
-            </div>
+            <label htmlFor="email">Email or Username*</label>
             <input
               type="text"
               name="email"
@@ -59,10 +83,7 @@ const SignInPage = () => {
           </div>
 
           <div className="w-full h-fit flex flex-col gap-1 items-start justify-center">
-            <div className="flex w-full items-center gap-2">
-              <label htmlFor="email">Password*</label>
-              {signInError.status == 400 && <span className="text-red-700 font-medium text-xs">{signInError.msg}</span>}
-            </div>
+            <label htmlFor="email">Password*</label>
             <div className="flex w-full h-fit items-center justify-end gap-1">
               <input
                 type={passwordVisibility ? "text" : "password"}
@@ -91,12 +112,7 @@ const SignInPage = () => {
                 ? "bg-gray-900 cursor-default"
                 : "bg-black cursor-pointer"
             }`}
-            onClick={() => {
-              if(loginForm.email_or_username && loginForm.password && !loginMutation.isPending) {
-                loginMutation.mutate(loginForm);
-                setSignInError({} as IAPIError);
-              }
-            }}
+            onClick={() => loginHandler()}
           >
             {loginMutation.isPending ? "Wait..." : "Sign In"}
           </button>
@@ -104,9 +120,12 @@ const SignInPage = () => {
 
         <div className="w-40 bg-gray-400 rounded-lg h-0.5 mt-5"></div>
 
-        <button className="bg-black rounded-lg font-medium w-full duration-300 transition-all hover:bg-gray-900 cursor-pointer text-white py-2 mt-4">
+        <Link
+          href={`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/google-consent`}
+          className="bg-black text-center rounded-lg font-medium w-full duration-300 transition-all hover:bg-gray-900 cursor-pointer text-white py-2 mt-4"
+        >
           Continue With Google
-        </button>
+        </Link>
 
         <div className="w-full h-fit flex items-center justify-center">
           <span>Don't have an account?</span>
