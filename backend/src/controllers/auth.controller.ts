@@ -2,7 +2,10 @@ import express from "express";
 import bcryptjs from "bcryptjs";
 
 // Config
-import { emailVerification, welcomeEmail } from "../config/email-templates.config";
+import {
+  emailVerification,
+  welcomeEmail,
+} from "../config/email-templates.config";
 
 // Models
 import userModel, { ERole } from "../models/user.model";
@@ -28,7 +31,8 @@ const signUp = async (req: express.Request, res: express.Response) => {
 
   if (isUsernameExists) throw new AppError("Username already exists.", 400);
 
-  if(![ERole.DEVELOPER, ERole.RECRUITER].includes(req.body.role as ERole)) throw new AppError("Invalid role.", 400)
+  if (![ERole.DEVELOPER, ERole.RECRUITER].includes(req.body.role as ERole))
+    throw new AppError("Invalid role.", 400);
 
   const hashSalt = await bcryptjs.genSalt(
     parseInt(process.env.SALT_ROUNDS as string)
@@ -40,7 +44,7 @@ const signUp = async (req: express.Request, res: express.Response) => {
     name: req.body.name,
     email: req.body.email,
     password: hashedPassword,
-    role: req.body.role as ERole
+    role: req.body.role as ERole,
   });
 
   if (!newUser) throw new AppError("Internal Server Error.", 500);
@@ -71,15 +75,23 @@ const signUp = async (req: express.Request, res: express.Response) => {
     return;
   }
 
-  const accessToken = generateJWTToken(newUser.id, process.env.ACCESS_TOKEN_EXPIRY as JWTExpiresIn)
-  
-  res.cookie('accessToken', accessToken, {
-    httpOnly: true,
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
-  }).json({
-    ok: true,
-    msg: "Logged in successfully."
-  })
+  newUser.is_verified = true
+  await newUser.save()
+
+  const accessToken = generateJWTToken(
+    newUser.id,
+    process.env.ACCESS_TOKEN_EXPIRY as JWTExpiresIn
+  );
+
+  res
+    .cookie("accessToken", accessToken, {
+      httpOnly: true,
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
+    })
+    .json({
+      ok: true,
+      msg: "Logged in successfully.",
+    });
 };
 
 const verifyEmail = async (req: express.Request, res: express.Response) => {
@@ -132,6 +144,20 @@ const login = async (req: express.Request, res: express.Response) => {
 
   if (!doesUserExists) throw new AppError("User not found.", 404);
 
+  if (!doesUserExists.is_verified) {
+    const verificationToken = generateJWTToken(doesUserExists.id, "5m");
+    await SendMail({
+      to: doesUserExists.email,
+      subject: "Email Verification",
+      html: emailVerification(
+        doesUserExists.name,
+        `${process.env.SERVER}/api/auth/verify-email?token=${verificationToken}`,
+        new Date().getFullYear.toString()
+      ),
+    });
+    throw new AppError("Please verify your email to login. We have sent you the verification link. Check your email.", 403);
+  }
+
   const isPassword = await bcryptjs.compare(
     req.query.password,
     doesUserExists.password
@@ -170,7 +196,7 @@ const googleAuth = async (
   const doesUserExists = await userModel.findOne({ email });
   if (!doesUserExists) {
     res.redirect(
-      `${process.env.CLIENT_GOOGLE_SIGNUP_URL}?name=${name}&profile_pic=${profile_pic}&email=${email}`
+      `${process.env.CLIENT_GOOGLE_SIGNUP_URL}&name=${name}&profile_pic=${profile_pic}&email=${email}`
     );
     return;
   }

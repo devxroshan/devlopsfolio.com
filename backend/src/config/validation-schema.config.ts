@@ -2,6 +2,7 @@ import z from "zod";
 
 import { EAvailability } from "../models/profile.model";
 import { ERole } from "../models/user.model";
+import { profile } from "console";
 
 export const userSignUpSchema = z.object({
   username: z
@@ -28,7 +29,7 @@ export const userSignUpSchema = z.object({
     ),
     role: z.enum([ERole.DEVELOPER, ERole.RECRUITER],{
       required_error: 'Role is required. Either as developer or recruiter.',
-    })
+    }),
 });
 
 export const profileSchema = z.object({
