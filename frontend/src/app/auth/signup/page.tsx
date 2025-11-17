@@ -5,6 +5,9 @@ import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { redirect, useSearchParams } from "next/navigation";
 
+// Custom Hooks
+import { useToast } from "@/app/hooks/useToast";
+
 // APIs
 import { SignUpAPI } from "@/app/api/auth.api";
 import { IAPIError } from "@/app/config/api.config";
@@ -17,6 +20,7 @@ const SignUp = () => {
   // Hooks
   const searchParams = useSearchParams();
 
+  // useStates
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [signUpForm, setSignUpForm] = useState<{
     username: string;
@@ -35,18 +39,25 @@ const SignUp = () => {
   });
   const [isSignedUp, setSignedUp] = useState<boolean>(false);
 
+  // Custom Hooks
+  const toastsController = useToast();
+
   // Mutations
   const signUpMutation = useMutation({
     mutationFn: SignUpAPI,
     onSuccess: (data) => {
       setSignedUp(data.ok);
-      console.log("Sign Up Successful:", data);
     },
     onError: (error: IAPIError) => {
-      console.error("Sign Up Failed:", error);
+      toastsController.addToast({
+        title: error.rawError?.message || "An unknown error",
+        msg: error.msg,
+        icon: "/profile.png",
+      });
     },
   });
 
+  // Handlers
   const signUpHanlder = () => {
     if (searchParams.get("authParty") === "google") {
       setSignUpForm({
@@ -57,13 +68,19 @@ const SignUp = () => {
       });
     }
 
-    const signUpValidation: { msg: string; path: string }[] | boolean =
+    const signUpValidation: { msg: string; path: string }[] | true =
       SchemaValidator(SignUpSchema, signUpForm);
 
     if (signUpValidation === true) {
       signUpMutation.mutate(signUpForm);
     } else {
-      console.log(signUpValidation);
+      signUpValidation.map((error) =>
+        toastsController.addToast({
+          title: "Form validation error.",
+          msg: error.msg,
+          icon: "/profile.png",
+        })
+      );
     }
   };
 

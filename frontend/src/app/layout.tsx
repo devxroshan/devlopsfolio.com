@@ -4,6 +4,7 @@ import "./globals.css";
 
 // Components
 import Navbar from "./components/Navbar";
+import ToastContainer from "./components/ToastContainer";
 
 // Wrappers
 import QueryProvider from "./Wrappers/QueryProvider";
@@ -23,11 +24,12 @@ export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
+}>){
   return (
     <html lang="en">
       <body className={`${roboto.className} antialiased vsc-initialized`}>
         <QueryProvider>
+          <ToastContainer/>
           <Navbar />
           {children}
         </QueryProvider>

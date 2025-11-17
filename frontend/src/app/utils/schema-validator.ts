@@ -1,16 +1,14 @@
 import { ZodObject } from "zod";
 
 
-export const SchemaValidator = <T extends ZodObject<any>>(schema: T, data: any):{msg:string,path:string}[] | boolean => {
+export const SchemaValidator = <T extends ZodObject<any>>(schema: T, data: any):{msg:string,path:string}[] | true => {
     const validate = schema.safeParse(data)
 
-    let errors: {msg:string,path:string}[] = []
-
     if (!validate.success) {
-        validate.error.issues.map((issue) => {
-            errors.push({msg: issue.message, path: issue.path.join(".")})
-        })
-        return errors
+        return validate.error.issues.map(issue => ({
+            msg: issue.message,
+            path: issue.path.join('.')
+        }))
     }
     return true
 }

@@ -1,21 +1,25 @@
 'use client';
 import { redirect, useSearchParams } from "next/navigation";
+import { useEffect } from 'react';
+import Link from "next/link";
 
 
 import DeveloperCard from "./components/DeveloperCard";
-import { useEffect } from 'react';
-
+import ProjectCard from "./components/ProjectCard";
+import { useToast } from "./hooks/useToast";
 
 export default function Home() {
   const searchParams = useSearchParams();
+  const toastsController = useToast()
+
 
   useEffect(() => {
     if (searchParams.get('accessToken')) {
       document.cookie = `accessToken=${searchParams.get('accessToken')}; path=/; max-age=${30 * 24 * 60 * 60}; secure: true`; // 30 days
       redirect('/dashboard');
     }
-  }, [searchParams.get('accessToken')])
-  
+  }, [searchParams.get('accessToken'), toastsController.toasts])
+
 
   return (
     <>
@@ -76,6 +80,38 @@ export default function Home() {
           />
         </div>
       </section>
+
+      <section className="w-full h-fit flex flex-col gap-6 select-none items-start justify-center py-6 px-6">
+        <span className="text-2xl font-medium">Projects</span>
+
+        <div className="w-full flex flex-wrap gap-12 items-center justify-center">
+          <ProjectCard projectImg="/test.jpg" projectName="CrewNeuro.ai" description='Lorem ipsum dolor sit amet consectetur adipisicing elit. At ipsam dolores blanditiis illum voluptatum odit voluptatibus est. Provident, quae. Rerum ratione aliquam facere qui, velit doloribus' techUsed={['ExpressJS', 'Python', 'C++']} like={2000} views={2000} developerName="Roshan Kewat" developerUsername="devxroshan" developerPic="profile.png"/>
+          <ProjectCard projectImg="/test.jpg" projectName="CrewNeuro.ai" description='Lorem ipsum dolor sit amet consectetur adipisicing elit. At ipsam dolores blanditiis illum voluptatum odit voluptatibus est. Provident, quae. Rerum ratione aliquam facere qui, velit doloribus' techUsed={['ExpressJS', 'Python', 'C++']} like={2000} views={2000} developerName="Roshan Kewat" developerUsername="devxroshan" developerPic="profile.png"/>
+          <ProjectCard projectImg="/test.jpg" projectName="CrewNeuro.ai" description='Lorem ipsum dolor sit amet consectetur adipisicing elit. At ipsam dolores blanditiis illum voluptatum odit voluptatibus est. Provident, quae. Rerum ratione aliquam facere qui, velit doloribus' techUsed={['ExpressJS', 'Python', 'C++']} like={2000} views={2000} developerName="Roshan Kewat" developerUsername="devxroshan" developerPic="profile.png"/>
+        </div>
+      </section>
+
+      <section className="flex flex-col w-full gap-2 items-start justify-center px-6">
+        <span className="text-2xl font-bold">About</span>
+
+        <p className="font-medium text-2xl select-none">At Devlopsfolio, we believe every developer deserves a place to show their work and get discovered. Our platform lets you create a stunning portfolio, add your projects, and showcase your skills. Recruiters can search by experience, tech stack, or availability, making it easy to find the right developer for any role or project.</p>
+      </section>
+
+      <footer className="bg-black w-full flex flex-col items-center justify-center py-6 mt-12">
+        <div className="w-full flex flex-col items-center justify-center gap-4 pb-7 border-b border-gray-700">
+          <span className="font-bold text-4xl text-white">devlopsfolio.com</span>
+
+          <div className="flex w-full gap-16 items-center justify-center">
+            <Link href={'#'} className="text-white font-medium text-xl">Developers</Link>
+            <Link href={'#'} className="text-white font-medium text-xl">Projects</Link>
+            <Link href={'#'} className="text-white font-medium text-xl">About</Link>
+          </div>
+        </div>
+
+        <div className="w-full flex items-center justify-center py-3 border-t border-gray-700">
+          <span className="text-gray-400">2025 Devlopsfolio - Developers Portfolio</span>
+        </div>
+      </footer>
     </>
   );
 }

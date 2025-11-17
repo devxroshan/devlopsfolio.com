@@ -2,8 +2,10 @@
 import React from "react";
 import { useState } from "react";
 import Link from "next/link";
-
 import { useMutation } from "@tanstack/react-query";
+
+// Custom Hooks
+import { useToast } from "@/app/hooks/useToast";
 
 // API
 import { LoginAPI } from "@/app/api/auth.api";
@@ -27,6 +29,10 @@ const SignInPage = () => {
   }>({ email_or_username: "", password: "" });
   const [signInError, setSignInError] = useState<IAPIError>({} as IAPIError);
 
+  // Custom hooks
+  const toastsController = useToast();
+
+  // Mutations
   const loginMutation = useMutation({
     mutationFn: LoginAPI,
     onSuccess: (data) => {
@@ -36,9 +42,15 @@ const SignInPage = () => {
     },
     onError: (error: IAPIError) => {
       setSignInError(error);
+      toastsController.addToast({
+        title: error.rawError?.message || "An Unknown Error",
+        msg: error.msg,
+        icon: "/profile.png",
+      });
     },
   });
 
+  // Handlers
   const loginHandler = () => {
     if (
       loginForm.email_or_username &&
