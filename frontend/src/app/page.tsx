@@ -109,7 +109,7 @@ export default function Home() {
         </div>
 
         <div className="w-full flex items-center justify-center py-3 border-t border-gray-700">
-          <span className="text-gray-400">2025 Devlopsfolio - Developers Portfolio</span>
+          <span className="text-gray-400">&copy; 2025 Devlopsfolio - Developers Portfolio</span>
         </div>
       </footer>
     </>
